@@ -1,0 +1,7 @@
+while (digitalRead(button) == HIGH) {  
+    if (millis() > buttonTimeKeeper) {
+      digitalWrite(led, !digitalRead(led));
+      buttonTimeKeeper = millis() + 100; 
+    }
+  }
+  digitalWrite(led, LOW);
