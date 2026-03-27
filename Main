@@ -1,0 +1,96 @@
+/*----------------------------------
+  State Machine
+----------------------------------*/
+// State machine sequence variables
+enum State {PICKUP, MOVE, DEPOSIT, RETURN};
+State state = PICKUP;
+
+/*----------------------------------
+  Starting Sequence
+----------------------------------*/
+// starting pins
+const int button = 2;
+const int led = 3;
+
+//starting variables
+unsigned long buttonTimeKeeper = 0; // needs to be an unsigned long cos milli is
+
+/*----------------------------------
+  Motors
+----------------------------------*/
+const int AIN1 = 5;
+const int AIN2 = 6;
+const int PWMA = 9;
+int speed = 250;
+
+void setSpeed(int speed) {
+  analogWrite(PWMA, speed);
+}
+
+void forward() {
+  digitalWrite(AIN1, HIGH);
+  digitalWrite(AIN2, LOW);
+}
+
+void backward() {
+  digitalWrite(AIN1, LOW);
+  digitalWrite(AIN2, HIGH);
+}
+
+void stopMotor() {
+  digitalWrite(AIN1, LOW);
+  digitalWrite(AIN2, LOW);
+}
+
+void brakeMotor() {
+  digitalWrite(AIN1, HIGH);
+  digitalWrite(AIN2, HIGH);
+}
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  // Motors
+  pinMode(AIN1, OUTPUT);
+  pinMode(AIN2, OUTPUT);
+  pinMode(PWMA, OUTPUT);
+  setSpeed(speed);
+  //LED and Button
+  pinMode(led, OUTPUT); // LED Output
+  pinMode(button, INPUT_PULLUP); // Button
+
+  // Wait for button press and instantly move on when pressed
+  while (digitalRead(button) == HIGH) {  
+    if (millis() > buttonTimeKeeper) {
+      digitalWrite(led, !digitalRead(led));
+      buttonTimeKeeper = millis() + 300; 
+    }
+  }
+  digitalWrite(led, LOW);
+}
+
+
+void loop() {
+  switch (state) {
+    case PICKUP:
+      forward();
+      delay(1000);
+      stopMotor();
+      delay(1000);
+      backward();
+      delay(1000);
+      break;
+    case MOVE:
+      // Moving to deposit stage here :)
+
+      break;
+    case DEPOSIT:
+      //depositing code here :)
+
+      break;
+    case RETURN:
+      //Returning code here :)
+
+      break;      
+  }
+}
