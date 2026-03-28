@@ -31,14 +31,14 @@ void setSpeed(int speed) {
   analogWrite(PWMB, speed);
 }
 
-void forward() {
+void noEnForward() {
   digitalWrite(AIN1, HIGH);
   digitalWrite(AIN2, LOW);
   digitalWrite(BIN1, HIGH);
   digitalWrite(BIN2, LOW);
 }
 
-void backward() {
+void noEnBackward() {
   digitalWrite(AIN1, LOW);
   digitalWrite(AIN2, HIGH);
   digitalWrite(BIN1, LOW);
@@ -73,6 +73,16 @@ void countPulseA() {
 void countPulseB() {
   pulsesB++;
 }
+/*----------------------------------
+  Driving logic
+----------------------------------*/
+const wheelDiameter = 65; // this is in mm
+const ticksRev = 20; // Amount of slots in the encoder wheel for one revolution
+
+
+/*----------------------------------
+  Setup
+----------------------------------*/
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
