@@ -237,7 +237,7 @@ void loop() {
       break;
     case SUMMIT:
       // do this when first summiting ramp
-      if (rampStart == false) {  
+      if (startRamp == false) {  
         // set to forward and reset pulse counts
         forward();
         // slowly increment speed to target ramp speed
