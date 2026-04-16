@@ -2,7 +2,7 @@
   State Machine
 ----------------------------------*/
 // State machine sequence variables
-enum State {PICKUP, MOVE, DEPOSIT, RETURN};
+enum State {PICKUP, MOVE, DEPOSIT, RETURN, SUMMIT};
 State state = DEPOSIT;
 
 /*----------------------------------
@@ -14,6 +14,14 @@ const int led = 13;
 
 //starting variables
 unsigned long buttonTimeKeeper = 0; // needs to be an unsigned long cos milli is
+
+/*----------------------------------
+  IR sensor
+----------------------------------*/
+// we are running out of pins fml 
+const int IRpin = 11;
+const int IRLED = 12;
+
 
 /*----------------------------------
   Motors
@@ -80,7 +88,17 @@ const int wheelDiameter = 65; // this is in mm
 const int ticksRev = 20; // Amount of slots in the encoder wheel for one revolution
 const int wheelBase = 180; // This is the distance between the weels(MEASURE THIS PROPERLY AS ITS A GUESS)
 const float mmPerTick = (PI * wheelDiameter) / ticksRev;
+const int turnSpeed = 180;
 
+// below are some variables for moving towards ramp
+bool startMove = false;
+bool yellow = false;
+
+// below are some variabels for going up the ramp
+const int rampTarget = 250; // tune this so that we have the correct speed for the ramp
+bool startRamp = false;
+
+// Resets pulses and sets to forward. use this before going forward
 void forward() {
   pulsesA = 0;
   pulsesB = 0;
@@ -135,6 +153,21 @@ void turn90() {
   setSpeed(speed);
 }
 
+void rampUp() {
+  int rampSpeed = 0;
+  while (pulsesA == 0 && pulsesB == 0) {
+    rampSpeed++;
+    setSpeed(rampSpeed);
+    delay(10);
+  }
+  while (rampSpeed < rampTarget) {
+    rampSpeed++;
+    setSpeed(rampSpeed);
+    delay(10);
+  }
+  speed = rampSpeed;
+}
+
 /*----------------------------------
   Setup
 ----------------------------------*/
@@ -157,7 +190,9 @@ void setup() {
   //LED and Button
   pinMode(led, OUTPUT); // LED Output
   pinMode(button, INPUT_PULLUP); // Button
-
+  // IR setup
+  pinMode(IRpin, INPUT);
+  pinMode(IRLED, OUTPUT);
   // Wait for button press and instantly move on when pressed
   while (digitalRead(button) == HIGH) {  
     if (millis() > buttonTimeKeeper) {
@@ -168,15 +203,47 @@ void setup() {
   digitalWrite(led, LOW);
 }
 
+
+
 void loop() {
   switch (state) {
     case PICKUP:
-      Serial.println(pulsesA);
-      delay(100);
+
+      // motor control for picking up arm here
+
       break;
     case MOVE:
-      // Moving to deposit stage here :)
+      // moving to the ramp here
+      
+      // only need to set forward once. I would rather contain this in an IF statement cos it'll constantly reset the pulse counts otherwise
+      if (startMove == false) {
+        forward();
+        startMove = true;
+      }
 
+      // while there is no yellow detected keep moving forward and break out once yellow is detected
+      while (!yellow) {
+        updateForward();
+        if (/* yellow detected */) { // UPDATE THIS HERE
+          yellow = true;
+        }
+      }
+
+      // Code to turn right. Only need to do once. We then set the state to SUMMIT to go up the ramp
+      if (yellow) {
+        turn90();
+        state = SUMMIT;
+      }
+      break;
+    case SUMMIT:
+      // do this when first summiting ramp
+      if (rampStart == false) {  
+        // set to forward and reset pulse counts
+        forward();
+        // slowly increment speed to target ramp speed
+        rampUp();
+      }
+      // DETECT THE RAMP HOLE HERE BRAKE MOTORS ONCE DETECTED AND SWITCH STATE TO DEPOSIT
       break;
     case DEPOSIT:
       //depositing code here :)
