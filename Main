@@ -3,7 +3,7 @@
 ----------------------------------*/
 // State machine sequence variables
 enum State {PICKUP, MOVE, DEPOSIT, RETURN};
-State state = PICKUP;
+State state = DEPOSIT;
 
 /*----------------------------------
   Starting Sequence
@@ -34,15 +34,15 @@ void setSpeed(int speed) {
 void noEnForward() {
   digitalWrite(AIN1, HIGH);
   digitalWrite(AIN2, LOW);
-  digitalWrite(BIN1, HIGH);
-  digitalWrite(BIN2, LOW);
+  digitalWrite(BIN1, LOW);
+  digitalWrite(BIN2, HIGH);
 }
 
 void noEnBackward() {
   digitalWrite(AIN1, LOW);
   digitalWrite(AIN2, HIGH);
-  digitalWrite(BIN1, LOW);
-  digitalWrite(BIN2, HIGH);
+  digitalWrite(BIN1, HIGH);
+  digitalWrite(BIN2, LOW);
 }
 
 void stopMotor() {
@@ -76,9 +76,64 @@ void countPulseB() {
 /*----------------------------------
   Driving logic
 ----------------------------------*/
-const wheelDiameter = 65; // this is in mm
-const ticksRev = 20; // Amount of slots in the encoder wheel for one revolution
+const int wheelDiameter = 65; // this is in mm
+const int ticksRev = 20; // Amount of slots in the encoder wheel for one revolution
+const int wheelBase = 180; // This is the distance between the weels(MEASURE THIS PROPERLY AS ITS A GUESS)
+const float mmPerTick = (PI * wheelDiameter) / ticksRev;
 
+void forward() {
+  pulsesA = 0;
+  pulsesB = 0;
+  noEnForward();
+}
+
+int speedA = speed;
+int speedB = speed;
+
+void updateForward() {
+  if (pulsesA > pulsesB + 1) {
+    speedA = max(speedA - 1, 0);
+  } else if (pulsesB > pulsesA + 1) {
+    speedB = max(speedB - 1, 0);
+  } else {
+    speedA = min(speedA + 1, speed);
+    speedB = min(speedB + 1, speed);
+  }
+  analogWrite(PWMA, speedA);
+  analogWrite(PWMB, speedB);
+}
+
+void turn180() {
+  pulsesA = 0;
+  pulsesB = 0;
+  int targetTicks = ((180 / 360.0) * PI * wheelBase) / mmPerTick;
+  setSpeed(turnSpeed);
+  digitalWrite(AIN1, HIGH);
+  digitalWrite(AIN2, LOW);
+  digitalWrite(BIN1, HIGH);
+  digitalWrite(BIN2, LOW);
+
+  while (pulsesA < targetTicks && pulsesB < targetTicks);
+
+  brakeMotor();
+  setSpeed(speed);
+}
+
+void turn90() {
+  pulsesA = 0;
+  pulsesB = 0;
+  int targetTicks = ((90 / 360.0) * PI * wheelBase) / mmPerTick;
+  setSpeed(turnSpeed);
+  digitalWrite(AIN1, HIGH);
+  digitalWrite(AIN2, LOW);
+  digitalWrite(BIN1, HIGH);
+  digitalWrite(BIN2, LOW);
+
+  while (pulsesA < targetTicks && pulsesB < targetTicks);
+
+  brakeMotor();
+  setSpeed(speed);
+}
 
 /*----------------------------------
   Setup
@@ -113,7 +168,6 @@ void setup() {
   digitalWrite(led, LOW);
 }
 
-
 void loop() {
   switch (state) {
     case PICKUP:
@@ -126,7 +180,9 @@ void loop() {
       break;
     case DEPOSIT:
       //depositing code here :)
-
+      noEnForward();
+      Serial.println(pulsesA);
+      Serial.println(pulsesB);
       break;
     case RETURN:
       //Returning code here :)
