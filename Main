@@ -15,6 +15,33 @@ const int led = 13;
 //starting variables
 unsigned long buttonTimeKeeper = 0; // needs to be an unsigned long cos milli is
 
+
+/*----------------------------------
+  RGB SENSOR
+----------------------------------*/
+#include <Wire.h>
+#include "SparkFunISL29125.h"
+
+SFE_ISL29125 RGB_sensor;
+
+bool detectYellow() {
+  uint16_t red = RGB_sensor.readRed();
+  uint16_t green = RGB_sensor.readGreen();
+  uint16_t blue = RGB_sensor.readBlue();
+  
+  // TreadRite yellow detection
+  // High red, high green, low blue, and R/G roughly equal
+  if (red > 0x7000 && green > 0x7000 && blue < 0x4000)
+  {
+    uint16_t diff = (red > green) ? (red - green) : (green - red);
+    if (diff < 0x2000)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 /*----------------------------------
   IR sensor
 ----------------------------------*/
@@ -193,6 +220,12 @@ void setup() {
   // IR setup
   pinMode(IRpin, INPUT);
   pinMode(IRLED, OUTPUT);
+  // RGB Setup
+  if (!RGB_sensor.init())
+  {
+    Serial.println("RGB Sensor init failed!");
+    while(1);
+  }
   // Wait for button press and instantly move on when pressed
   while (digitalRead(button) == HIGH) {  
     if (millis() > buttonTimeKeeper) {
@@ -212,24 +245,24 @@ void loop() {
       // motor control for picking up arm here
 
       break;
+
     case MOVE:
       // moving to the ramp here
       
-      // only need to set forward once. I would rather contain this in an IF statement cos it'll constantly reset the pulse counts otherwise
       if (startMove == false) {
         forward();
         startMove = true;
       }
 
-      // while there is no yellow detected keep moving forward and break out once yellow is detected
+      // while there is no yellow detected keep moving forward
       while (!yellow) {
         updateForward();
-        if (/* yellow detected */) { // UPDATE THIS HERE
+        if (detectYellow()) {  // NOW IT DETECTS YELLOW!
           yellow = true;
         }
       }
 
-      // Code to turn right. Only need to do once. We then set the state to SUMMIT to go up the ramp
+      // Code to turn right
       if (yellow) {
         turn90();
         state = SUMMIT;
