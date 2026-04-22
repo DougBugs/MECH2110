@@ -1,3 +1,6 @@
+#include <Wire.h>
+#include "SparkFunISL29125.h"
+
 /*----------------------------------
   State Machine
 ----------------------------------*/
@@ -19,8 +22,6 @@ unsigned long buttonTimeKeeper = 0; // needs to be an unsigned long cos milli is
 /*----------------------------------
   RGB SENSOR
 ----------------------------------*/
-#include <Wire.h>
-#include "SparkFunISL29125.h"
 
 SFE_ISL29125 RGB_sensor;
 
