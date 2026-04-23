@@ -53,7 +53,7 @@ const int IRLED = 12;
 /*----------------------------------
   Servo
 ----------------------------------*/
-const int servoPin = 6; //change for servo
+const int servoPin = 22; //change for servo
 
 /*----------------------------------
   Motors
