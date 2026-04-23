@@ -58,11 +58,11 @@ const int servoPin = 6; //change for servo
 /*----------------------------------
   Motors
 ----------------------------------*/
-const int BIN1 = 7;
-const int BIN2 = 8;
-const int PWMB = 10;
-const int AIN1 = 5;
-const int AIN2 = 6;
+const int BIN1 = 5;
+const int BIN2 = 7;
+const int PWMB = 6;
+const int AIN1 = 8;
+const int AIN2 = 10;
 const int PWMA = 9;
 int speed = 250;
 
