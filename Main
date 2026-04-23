@@ -50,6 +50,10 @@ bool detectYellow() {
 const int IRpin = 11;
 const int IRLED = 12;
 
+/*----------------------------------
+  Servo
+----------------------------------*/
+const int servoPin = 6; //change for servo
 
 /*----------------------------------
   Motors
@@ -210,6 +214,11 @@ void setup() {
   pinMode(AIN2, OUTPUT);
   pinMode(PWMA, OUTPUT);
   setSpeed(speed);
+
+  pinMode(motorPin, OUTPUT);
+  myServo.attach(servoPin);
+  myServo.write(0);
+
   // Encoders
   pinMode(ENA, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(ENA), countPulseA, RISING);
@@ -242,9 +251,18 @@ void setup() {
 void loop() {
   switch (state) {
     case PICKUP:
+        noEnForward();
+        delay(2000);
+        //arm exted 
+        digitalWrite(motorPin, HIGH);   // Starts motor
+        delay(8000);   // Runs for 8 seconds ethan reccomended
+        digitalWrite(motorPin, LOW); //stop
 
-      // motor control for picking up arm here
-
+        // Sweep servo from 0 to 90 degrees
+        for (int pos = 0; pos <= 90; pos++) { // might have to change depending on whats scoop
+        myServo.write(pos); // also migh have to change strating point based on scoop startign angle 
+        delay(20);
+        }
       break;
 
     case MOVE:
@@ -280,7 +298,11 @@ void loop() {
       // DETECT THE RAMP HOLE HERE BRAKE MOTORS ONCE DETECTED AND SWITCH STATE TO DEPOSIT
       break;
     case DEPOSIT:
-      //depositing code here :)
+       // MOVE SERVO TO DUMP ROCKS
+      for (int pos = 90; pos >= 0; pos--) {
+      myServo.write(pos);
+      delay(20);
+      }
       noEnForward();
       Serial.println(pulsesA);
       Serial.println(pulsesB);
